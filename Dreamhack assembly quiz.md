@@ -353,6 +353,8 @@ Question 1
 
 
 코드를 관찰하면
+
+
 **1: mov dl, BYTE PTR[rsi+rcx]**
 
 rsi + rcx는 메모리 주소를 계산한다. rsi는 시작 주소이고, rcx는 오프셋이다.
