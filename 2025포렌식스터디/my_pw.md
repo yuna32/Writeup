@@ -14,11 +14,6 @@ http로 필터링해서 패킷들을 하나씩 살펴본다. 그러면 join이�
 첫번째 패킷이다. 그렇지만 id가 'zzanghacker'의 것으로는 보이지 않는다.
 
 
-![image](https://github.com/user-attachments/assets/510d4a31-7ca5-4025-95c4-d48540fc8e99)
+![image](https://github.com/user-attachments/assets/28b454fe-ae61-4e52-b789-24485358b90f)
 
-이 패킷에서의 id는 'zzanghacker'의 것으로 보이기는 하지만 이후에 비밀번호를 바꾸었을 가능성도 있으니 다른 패킷들도 확인해야 한다.
-
-
-![image](https://github.com/user-attachments/assets/0ce6d1aa-cf8c-4988-a91c-2801b62f1609)
-
-id가 'zzanghacker'의 것인 마지막 http post 요청 패킷은 이것이다. 따라서 여기에서 보이는 비밀번호가 플래그라 볼 수 있다.
+join 문자열이 표시된 php페이지가 보이는 패킷 중 하나이다. zzanghacker가 가입 시 입력한 아이디, 비밀번호, 이메일이므로 이 패킷에서 보이는 IDISLIE 가 비밀번호라 볼 수 있다.
