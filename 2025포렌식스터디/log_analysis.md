@@ -39,7 +39,7 @@ https://www.secrepo.com/self.logs/  사이트에서 로그 파일을 구했다.
 
 ![image](https://github.com/user-attachments/assets/bccf3c93-bf60-419c-81a8-046c8e85e112)
 
-data.log 파일을 열어보면 이렇게 
+data.log 파일을 열어보면 이렇게 14일 23시 59분까지의 기록만 추출된 것을 확인할 수 있다.
 
 ![image](https://github.com/user-attachments/assets/c2bfa509-40fd-4bfb-9e49-c715326227bb)
 
