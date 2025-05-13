@@ -90,39 +90,37 @@ evtx 파일 분석
 
 이벤트 뷰어에서 이벤트 로그를 보면
 
-* **RuleName:** `UtcTime`
-    * 이는 Sysmon 규칙의 이름입니다. `UtcTime`이라고 되어 있는 것은 해당 이벤트가 특정 규칙에 의해 트리거되었음을 나타내지만, 규칙 이름이 `UtcTime`인 것은 다소 이례적입니다. 일반적으로 침해 지표(IOC)나 특정 행위를 탐지하기 위한 의미 있는 이름이 사용됩니다. `UtcTime`은 단순히 이벤트 발생 시간을 나타내는 필드일 가능성이 높습니다. (아래 `UtcTime` 필드와 중복되는 것으로 보아 오류일 수 있습니다.)
 
 * **UtcTime:** `2019-03-17 19:37:11.641`
-    * 이 이벤트가 발생한 UTC (협정 세계시) 기준 시간입니다. 2019년 3월 17일 19시 37분 11.641초에 이벤트가 기록되었음을 나타냅니다.
+    * 이 이벤트가 발생한 UTC (협정 세계시) 기준 시간이다. 2019년 3월 17일 19시 37분 11.641초에 이벤트가 기록되었음을 나타낸다.
 
 * **SourceProcessGUID:** `{365abb72-a1e3-5c8e-0000-0010cef72200}`
-    * 접근을 시도한 원본 프로세스의 고유 식별자 (GUID)입니다. 이 GUID를 통해 시스템 내에서 해당 프로세스를 추적할 수 있습니다.
+    * 접근을 시도한 원본 프로세스의 고유 식별자 (GUID)이다. 이 GUID를 통해 시스템 내에서 해당 프로세스를 추적할 수 있다.
 
 * **SourceProcessId:** `3588`
-    * 접근을 시도한 원본 프로세스의 프로세스 ID (PID)입니다. 이벤트 발생 당시 해당 프로세스의 PID를 나타냅니다. 프로세스는 실행될 때마다 새로운 PID를 할당받으므로, 특정 시점의 프로세스를 식별하는 데 유용합니다.
+    * 접근을 시도한 원본 프로세스의 프로세스 ID (PID)이다. 이벤트 발생 당시 해당 프로세스의 PID를 나타낸다. 
 
 * **SourceThreadId:** `2272`
-    * 접근을 시도한 원본 프로세스 내의 특정 스레드 ID입니다. 프로세스는 하나 이상의 스레드로 구성될 수 있으며, 이 ID는 해당 이벤트를 발생시킨 스레드를 식별합니다.
+    * 접근을 시도한 원본 프로세스 내의 특정 스레드 ID이다. 
 
 * **SourceImage:** `C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe`
-    * 접근을 시도한 원본 프로세스의 실행 파일 경로입니다. 명확하게 Mimikatz라는 악성 도구가 실행되었음을 보여줍니다.
+    * 접근을 시도한 원본 프로세스의 실행 파일 경로이다. 명확하게 Mimikatz라는 악성 도구가 실행되었음을 보여준다.
 
 * **TargetProcessGUID:** `{365abb72-0886-5c8f-0000-001030560000}`
-    * 접근 대상 프로세스의 고유 식별자 (GUID)입니다.
+    * 접근 대상 프로세스의 고유 식별자 (GUID)이다.
 
 * **TargetProcessId:** `476`
-    * 접근 대상 프로세스의 프로세스 ID (PID)입니다.
+    * 접근 대상 프로세스의 프로세스 ID (PID)이다.
 
 * **TargetImage:** `C:\Windows\system32\lsass.exe`
-    * 접근 대상 프로세스의 실행 파일 경로입니다. LSASS (Local Security Authority Subsystem Service)는 윈도우의 보안 정책 및 사용자 인증을 관리하는 핵심 시스템 프로세스입니다.
+    * 접근 대상 프로세스의 실행 파일 경로이다. 
 
 * **GrantedAccess:** `0x1010`
-    * 원본 프로세스가 대상 프로세스에 대해 획득한 접근 권한을 나타내는 16진수 값입니다. `0x1010`은 `PROCESS_VM_READ` (메모리 읽기) 권한과 `PROCESS_QUERY_LIMITED_INFORMATION` (제한된 정보 쿼리) 권한의 조합으로, Mimikatz가 LSASS 프로세스의 메모리에서 계정 정보를 탈취하는 데 필요한 권한입니다.
+    * 원본 프로세스가 대상 프로세스에 대해 획득한 접근 권한을 나타내는 16진수 값이다. `0x1010`은 `PROCESS_VM_READ` (메모리 읽기) 권한과 `PROCESS_QUERY_LIMITED_INFORMATION` (제한된 정보 쿼리) 권한의 조합으로, Mimikatz가 LSASS 프로세스의 메모리에서 계정 정보를 탈취하는 데 필요한 권한이다.
 
 * **CallTrace:** `C:\Windows\SYSTEM32\ntdll.dll+4595c|C:\Windows\system32\KERNELBASE.dll+8185|C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe+5c5a9|C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe+5c86c|C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe+5cbd2|C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe+5c4ff|C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe+3b3d3`
-    * 이벤트 발생 시 호출 스택을 보여줍니다. 어떤 함수들이 호출되어 해당 행위 (프로세스 간 접근)를 발생시켰는지 추적하는 데 유용합니다. Mimikatz 실행 파일 경로가 호출 스택에 포함되어 있어 Mimikatz가 직접적으로 LSASS 프로세스에 접근했음을 뒷받침합니다. `ntdll.dll`과 `KERNELBASE.dll`은 윈도우 시스템의 핵심 DLL 파일입니다.
+    * 이벤트 발생 시 호출 스택을 보여준다. Mimikatz 실행 파일 경로가 호출 스택에 포함되어 있어 Mimikatz가 직접적으로 LSASS 프로세스에 접근했음을 뒷받침한다. `ntdll.dll`과 `KERNELBASE.dll`은 윈도우 시스템의 핵심 DLL 파일이다.
 
-**요약:**
+요약하자면,
 
-이미지에 나타난 Sysmon 이벤트 로그는 `C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe` (Mimikatz) 프로세스가 PID 3588을 사용하여 `C:\Windows\system32\lsass.exe` (LSASS) 프로세스 PID 476에 `0x1010` (메모리 읽기 등) 권한으로 접근한 것을 상세하게 기록하고 있습니다. 이는 **Mimikatz를 이용한 계정 정보 탈취 시도**를 명확하게 나타내는 증거입니다.
+이 이벤트 로그는 `C:\Users\IEUser\Desktop\mimikatz_trunk\Win32\mimikatz.exe` (Mimikatz) 프로세스가 PID 3588을 사용하여 `C:\Windows\system32\lsass.exe` (LSASS) 프로세스 PID 476에 `0x1010` (메모리 읽기 등) 권한으로 접근한 것을 기록하고 있다. 이는 **Mimikatz를 이용한 계정 정보 탈취 시도**를 나타내는 증거라 볼 수 있다.
