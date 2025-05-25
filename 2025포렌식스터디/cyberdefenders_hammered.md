@@ -198,3 +198,37 @@ awk '
 
 
 
+
+
+
+#### Q6
+![image](https://github.com/user-attachments/assets/3f31a93d-4890-44cf-9d6b-0345b4c04d76)
+
+서버에 보내진 요청의 수를 알아내라는 질문인데 요청은 액세스와 밀접한 연관이 있다. (액세스 로그의 한 줄 = 요청)
+
+따라서 apache 폴더의 www.access log를 이용한다. 
+
+![image](https://github.com/user-attachments/assets/6798046f-1772-4277-9ea6-16f2587dc137)
+
+wc -l www-access.log 명령어로 줄 수를 출력해보면 답은 **365**
+
+
+
+
+#### Q7
+![image](https://github.com/user-attachments/assets/20f224f0-49c2-4b2a-a10f-7fa8a3d9b498)
+
+만들어진 방화벽 규칙 수를 묻고 있다.
+
+![image](https://github.com/user-attachments/assets/bf746907-1693-45cc-9c2a-d36b0931799b)
+
+찾아보니 리눅스 방화벽 규칙에 사용되는 대표적 툴이 **iptables** 라 한다.
+
+**grep "iptables" auth.log** 명령어로 iptables 커맨드가 실행된 횟수를 알아본다.
+
+![image](https://github.com/user-attachments/assets/b264d3b5-3505-43f3-a578-5470a9d7fef9)
+
+root 에서 성공적으로 실행된 횟수는 **6** 번.
+
+
+
