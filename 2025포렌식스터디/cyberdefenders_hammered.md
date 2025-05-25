@@ -269,3 +269,29 @@ Q9
 
 
 
+Q10
+-----
+![image](https://github.com/user-attachments/assets/010e67a3-d79e-4a2c-b962-4ae596180c6f)
+
+일단 데이터베이스의 warning에 대해 찾는 문제니까 **grep "mysql"** 로 모든 파일을 하나씩 살펴보면서 관련된 내용을 찾아본다. 
+
+![image](https://github.com/user-attachments/assets/7559980e-d158-4425-99a6-fe8403a4bd47)
+
+그러던 중 daemon.log에 유독 warning이 많은 것을 발견했다. **grep "warning" daemon.log** 으로 다시 찾아본다. 
+
+![image](https://github.com/user-attachments/assets/dda5e317-c07a-456a-9984-71cebe7ad8bb)
+
+대문자, 소문자로 한번씩 봐주었다. 
+
+일단 주요 warning은 ' 1 client is using or hasn't closed the table properly' , ' mysql.user contains 2 root accounts without password!' , 'mysqlcheck has found corrupt tables' 이다.
+
+이중에서 뭐가 제일 심각한 문제인지 추측해보면 역시 느낌표가 붙어있는 **mysql.user contains 2 root accounts without password!** 가 아닐까 추측했고, 확인 결과 정답이었다.
+
+
+
+
+
+
+
+
+
