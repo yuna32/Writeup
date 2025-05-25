@@ -127,13 +127,54 @@ awk '
 
 * **`> auth_failure.txt`**: `awk` 명령어의 모든 출력 결과를 `auth_failure.txt` 파일로 저장한다.
 
-이후에 cat 명령어 사용해서 auth_failure.txt의 내용을 된다.
+이후에 cat 명령어 사용해서 auth_failure.txt의 내용을 출력한다.
+
+![스크린샷 2025-05-25 211912](https://github.com/user-attachments/assets/8563d694-bbe1-4856-a67f-07a1b7520721)
+
+1, 3같은 유의미하지 않은 값을 제외하면 답은 **6**개.
 
 
 
 
+#### Q5
+![스크린샷 2025-05-25 211951](https://github.com/user-attachments/assets/c28d4023-e2fa-4800-ad48-b82f77d8b2de)
+
+Q4에서 알아낸 6개의 ip 주소를 별도의 파일에 저장해둔다.
+
+![스크린샷 2025-05-25 212155](https://github.com/user-attachments/assets/c8a7fd10-1010-4663-a896-f07a712a92b3)
+
+이제 이 **attacker.txt 파일에 있는 각 IP 주소가 auth.log 파일에서 루트 계정으로 비밀번호를 통해 로그인에 성공한 횟수를 계산** 해야한다.
+
+```bash
+awk '
+  BEGIN {
+    while (getline < "attacker.txt") {
+    }
+    close("attacker.txt")
+  }
+  /Accepted password for root/ {
+    for (i=1; i<=NF; i++) {
+      if ($i == "from") {
+        ip = $(i+1)
+        if (ip in ips) {
+          ips[ip]++
+        }
+        break
+      }
+    }
+  }
+  END {
+
+    for (ip in ips) {
+      print ip ": " ips[ip]
+    }
+  }
+' auth.log
+```
 
 
+* **`BEGIN` 블록**:
+    * `awk`가 로그 파일 처리(`auth.log`)를 시작하기 **전에** 한 번 실행됩니다.
     * `while (getline < "/tmp/ham/attacker_ip.txt")`: `/tmp/ham/attacker_ip.txt` 파일을 열어 각 줄을 읽어옵니다. 각 줄은 IP 주소로 간주됩니다.
     * `ips[$1] = 0`: 읽어온 IP 주소(`$1`은 현재 줄의 첫 번째 필드)를 `ips`라는 연관 배열의 키로 사용하고, 해당 IP의 카운트 값을 `0`으로 초기화합니다. 이렇게 하여 `attacker_ip.txt`에 있는 IP 주소들만 `awk`가 추적하도록 합니다.
     * `close("/tmp/ham/attacker_ip.txt")`: `attacker_ip.txt` 파일과의 연결을 닫습니다.
