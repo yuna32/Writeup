@@ -292,6 +292,48 @@ Q10
 
 
 
+Q11
+-------
+
+![image](https://github.com/user-attachments/assets/e0a30c7e-e14e-45d4-95eb-59121ab07f75)
+
+
+새로운 사용자 계정이 추가된 것을 보려면 'useradd' 문자열을 찾아야 한다.
+
+**grep -i "useradd" auth.log** 명령어로 모든 사용자 계정 추가를 보고, Apr 26 04:43:15에 추가된 계정을
+찾는다. -i는 10번 문제에서 대소문자 이슈로 헷갈렸던게 생각나서 붙여놨다. 
+
+
+![image](https://github.com/user-attachments/assets/97788b50-6379-4650-94e0-77042c6818fc)
+
+
+출력 결과를 보면 정답은 **wind3str0y**
 
 
 
+Q12
+----
+![image](https://github.com/user-attachments/assets/64ad80de-d426-434b-9f4b-b099e84ed192)
+
+
+일단, 공격자가 프록시를 사용했다면 해당 프록시 소프트웨어의 User-Agent가 로그에 기록될 가능성이 높다.
+그러면 www-access.log 파일에서 User-Agent 필드를 추출하는 명령어 **awk -F'"' '{print $6}' www-access.log** 를 사용하여 문제를 해결할 수 있다.
+
+
+이렇게 얻은 고유한 User-Agent 목록을 검토하여 일반적인 웹 브라우저나 검색 엔진 봇의 User-Agent와는 다른, 비정상적이거나 특정 프록시 소프트웨어의 특징을 나타내는 User-Agent 문자열을 식별할 수 있다.
+
+
+![image](https://github.com/user-attachments/assets/464ed00e-0a80-4afe-ba43-18a32a1fc0b4)
+
+
+출력 결과를 살펴보다 보면 apple, intel, mozilla 등 익숙한 이름들 사이에 **pxyscand/2.1**라는 낯선 이름이 보인다.
+
+![image](https://github.com/user-attachments/assets/051ab885-8e8f-4797-a59f-ef43239ed385)
+
+서치해보니 프록시 스캐너가 맞다. 따라서 정답은 **pxyscand/2.1**
+
+
+
+![image](https://github.com/user-attachments/assets/69179408-f010-49ec-bf4e-2155d1ab23ed)
+
+완료 
