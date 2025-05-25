@@ -136,6 +136,9 @@ awk '
 
 
 
+
+
+
 #### Q5
 ![스크린샷 2025-05-25 211951](https://github.com/user-attachments/assets/c28d4023-e2fa-4800-ad48-b82f77d8b2de)
 
@@ -173,26 +176,25 @@ awk '
 ```
 
 
-* **`BEGIN` 블록**:
-    * `awk`가 로그 파일 처리(`auth.log`)를 시작하기 **전에** 한 번 실행됩니다.
-    * `while (getline < "/tmp/ham/attacker_ip.txt")`: `/tmp/ham/attacker_ip.txt` 파일을 열어 각 줄을 읽어옵니다. 각 줄은 IP 주소로 간주됩니다.
-    * `ips[$1] = 0`: 읽어온 IP 주소(`$1`은 현재 줄의 첫 번째 필드)를 `ips`라는 연관 배열의 키로 사용하고, 해당 IP의 카운트 값을 `0`으로 초기화합니다. 이렇게 하여 `attacker_ip.txt`에 있는 IP 주소들만 `awk`가 추적하도록 합니다.
-    * `close("/tmp/ham/attacker_ip.txt")`: `attacker_ip.txt` 파일과의 연결을 닫습니다.
+* **BEGIN 블록**:
+    * awk가 로그 파일 처리(auth.log)를 시작하기 **전에** 한 번 실행된다.
+    * `while (getline < "/tmp/ham/attacker_ip.txt")`: attacker.txt 파일을 열어 각 줄을 읽어온다. 각 줄은 IP 주소로 간주된다.
+    * `ips[$1] = 0`: 읽어온 IP 주소(`$1`은 현재 줄의 첫 번째 필드)를 `ips`라는 연관 배열의 키로 사용하고, 해당 IP의 카운트 값을 0으로 초기화한다. 이렇게 하여 `attacker.txt`에 있는 IP 주소들만 aw`가 추적하도록 한다.
+    * `close("attacker.txt")`: `attacker.txt` 파일과의 연결을 닫는다.
 
 * **본문 규칙 (`/Accepted password for root/` 블록)**:
-    * `auth.log` 파일의 각 줄을 읽으면서, 해당 줄에 "**Accepted password for root**" 문자열이 포함되어 있으면 이 블록이 실행됩니다. 이는 루트 계정의 성공적인 비밀번호 로그인 메시지를 의미합니다.
-    * `for (i=1; i<=NF; i++) { if ($i == "from") { ip = $(i+1); ... break } }`: 현재 로그 줄(`$0`)의 각 필드를 반복하면서 "from"이라는 단어를 찾습니다. "from"을 찾으면 그 다음 필드(`$(i+1)`)를 IP 주소로 간주하고 `ip` 변수에 할당합니다.
-    * `if (ip in ips) { ips[ip]++ }`: 추출된 `ip` 주소가 `BEGIN` 블록에서 로드된 `ips` 배열(즉, `attacker_ip.txt`에 있는 IP 목록)에 포함되어 있는지 확인합니다. 만약 있다면, 해당 IP 주소의 `ips` 배열 카운트를 1 증가시킵니다. `break`는 해당 줄에서 IP 주소를 찾았으니 더 이상 필드를 스캔하지 않도록 합니다.
+    * auth.log 파일의 각 줄을 읽으면서 해당 줄에 "**Accepted password for root**" 문자열이 포함되어 있으면 이 블록이 실행된다. 이는 루트 계정의 성공적인 비밀번호 로그인 메시지를 의미한다.
+    * `for (i=1; i<=NF; i++) { if ($i == "from") { ip = $(i+1); ... break } }`: 현재 로그 줄(`$0`)의 각 필드를 반복하면서 "from"이라는 단어를 찾는다. "from"을 찾으면 그 다음 필드(`$(i+1)`)를 IP 주소로 간주하고 `ip` 변수에 할당한다.
+    * `if (ip in ips) { ips[ip]++ }`: 추출된 ip 주소가 BEGIN 블록에서 로드된 `ips` 배열(즉 `attacker_ip.txt`에 있는 IP 목록)에 포함되어 있는지 확인한다. 만약 있다면, 해당 IP 주소의 `ips` 배열 카운트를 1 증가시킨다. `break`는 해당 줄에서 IP 주소를 찾았으니 더 이상 필드를 스캔하지 않도록 한다.
 
-* **`END` 블록**:
-    * `auth.log` 파일의 처리가 **모두 끝난 후에** 한 번 실행됩니다.
-    * `for (ip in ips) { print ip ": " ips[ip] }`: `ips` 배열에 저장된 모든 IP 주소와 그에 해당하는 최종 루트 로그인 성공 횟수를 "**IP 주소: 횟수**" 형식으로 화면에 출력합니다.
-
+* **END 블록**:
+    * auth.log 파일의 처리가 **모두 끝난 후에** 한 번 실행된다.
+    * `for (ip in ips) { print ip ": " ips[ip] }`: `ips` 배열에 저장된 모든 IP 주소와 그에 해당하는 최종 루트 로그인 성공 횟수를 "**IP 주소: 횟수**" 형식으로 화면에 출력한다.
 
 
 ![image](https://github.com/user-attachments/assets/387a8ce8-b608-4eb6-b87e-dd4dcb3f2fc0)
 
-이렇게 출력 결과가 나온다. 답은 **219.150.161.20** 
+실행하면 이렇게 출력 결과가 나온다. 답은 **219.150.161.20** 
 
 
 
