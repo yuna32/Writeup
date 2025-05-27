@@ -16,3 +16,10 @@ ida를 켜서 main 함수를 살펴본다. 비밀번호가 맞더라도 IsDebugg
 
 일단 아래로 내려가보면 암호화된 플래그로 추정되는 문자열이 보인다. 
 
+![image](https://github.com/user-attachments/assets/635e3e15-5da3-4777-9245-8905da05e02c)
+
+![image](https://github.com/user-attachments/assets/359f9bc7-a15d-4edd-9cd2-eb74a45aad12)
+
+ida로 보면 이렇게 계속해서 분기되는 구조로 되어있음을 알 수 있다.
+
+그러면 이 분기들을 jmp를 아마 쓰면 될거같긴한데 어떻게 써야할질 모르겠다... 
