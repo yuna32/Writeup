@@ -98,6 +98,143 @@ finish 명령어를 사용하면 함수의 끝까지 한번에 실행할 수 있
 ## 디버깅을 위해 자주 사용하는 명령어 - info
 
 
+info 명령어는 정보를 보여주는 명령어이다.
+
+![image](https://github.com/user-attachments/assets/6f8ed0ce-0d0c-4532-ade8-43f9a4ecfc01)
+
+info register(i r로 단축키 사용 가능)은 레지스터에 저장된 값을 출력한다. 
+
+이런 상황 외에 레지스터에 들어있는 값을 바로 사용하고 싶을 경우,
+
+```
+pwndbg> b $rdi
+```
+
+와 같이 $<레지스터명> 형식으로 바로 사용할 수 있다.
+
+![image](https://github.com/user-attachments/assets/36b87c28-5165-4367-8719-3723f3a990b7)
+
+info breakpoints(i b로 단축키 사용 가능)은 중단점들을 확인할 수 있는 명령어이다. 
+각 중단점마다 번호가 부여된 것을 알 수 있고, 이 번호들을 이용하여 특정 중단점을 비활성화/활성화/삭제할 수 있다.
+
+중단점을 비활성화하고 싶다면 disable 명령어, 활성화하고 싶다면 enable 명령어, 삭제하고 싶다면 delete(단축키 d) 명령어를 사용하면 된다.
+
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - disassemble
+
+gdb는 기계어를 디스어셈블하는 기능을 기본적으로 탑재하고 있다. disassemble은 gdb가 기본적으로 제공하는 디스어셈블 명령어이다.
+
+![image](https://github.com/user-attachments/assets/8c878b93-090c-4524-8258-379ca0e413c5)
+
+위와 같이 함수 이름을 인자로 전달하면 해당 함수가 반환될때까지 전부 디스어셈블하여 보여준다.
+
+![image](https://github.com/user-attachments/assets/1b13661a-aa1e-4294-be40-b551f80cfc1e)
+
+u, nearpc, pdisass를 사용하면 디스어셈블된 코드가 가독성 좋게 출력된다.
+
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - x (examine)
+
+
+x를 이용하면 특정 주소에서 원하는 길이만큼의 데이터를 원하는 방식으로 인코딩하여 볼 수 있다.
+
+원하는 포맷과 크기를 조합하여 x와 결합한 명령어를 사용할 수 있다.
+
+### rsp부터 80바이트를 8바이트씩 hex 형식으로 출력
+![image](https://github.com/user-attachments/assets/4f1929a2-e697-44f4-9cc6-3b87d489c890)
+
+
+
+### rip부터 5줄의 어셈블리어 출력
+![image](https://github.com/user-attachments/assets/70a68925-0947-4566-a776-05110fa86442)
+
+
+### 특정 주소의 문자열 출력
+![image](https://github.com/user-attachments/assets/65aaeb6a-e6b1-4c97-901b-735580eb2734)
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - telescope
+
+telescope(단축어 tele)는 pwndbg에서 제공하는 메모리 덤프 기능이다. 특정 주소의 메모리 값을 보여줄 뿐만 아니라 메모리가 참조하고 있는 주소를 재귀적으로 탐색하여 값을 보여준다.
+
+![image](https://github.com/user-attachments/assets/2eb4d1be-097d-46c9-8608-592d1a1c69b9)
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - vmmap
+
+vmmap은 가상 메모리의 레이아웃을 보여준다. 어떤 파일이 매핑된 영역일 경우(매핑이란, 어떤 파일을 메모리에 적재하는 것), 해당 파일의 경로까지 보여준다. 
+
+![image](https://github.com/user-attachments/assets/d96179e2-38db-43b9-baf8-ae98c0d28994)
+
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - backtrace
+
+콜 스택(call stack)이란 프로그램이 실행되는 동안 함수가 호출되는 순서를 저장하는 구조이다. 프로그램이 실행되면서 하나의 함수가 다른 함수를 호출할 때마다 새로운 함수 호출 정보가 추가되며, 함수 실행이 끝나면 제일 최근에 호출된 함수부터 순서대로 제거된다.
+
+콜 스택은 디버깅 시 유용하게 사용할 수 있다. gdb에서는 backtrace(단축어 bt) 를 이용해 콜 스택을 확인할 수 있다.
+
+![image](https://github.com/user-attachments/assets/81393d13-65ed-44d7-94b7-5b5d75467eed)
+
+add를 호출한 뒤 콜 스택을 확인한 예시이다.
+
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - dump memory
+
+프로세스의 메모리 상태를 파일로 저장할 때 사용하는 명령어로, **dump memory <파일명> <시작주소> <끝주소>** 와 같은 형식으로 사용한다.
+
+![image](https://github.com/user-attachments/assets/7207ac3e-1ddb-464a-a7d1-ab47c3beb240)
+
+프로그램 실행 후, vmmap 명령어로 프로그램의 코드 영역의 시작 주소와 끝 주소를 얻은 뒤 dump memory 명령으로 덤프를 수행한다.
+
+![image](https://github.com/user-attachments/assets/99436d7b-52ed-408d-bfcc-232eb999c834)
+
+이후 code_selection 이라는 파일이 생성된 것을 확인 가능하다.
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - context
+
+pwndbg는 주요 메모리들의 상태를 프로그램이 실행되고 있는 맥락 즉 컨텍스트라고 한다. 
+별도로 context 명령어를 입력하여 이 컨텍스트를 볼 수 도 있다.
+
+
+context는 4개의 영역으로 구분된다.
+1. registers: 레지스터의 상태를 보여준다.
+2. disasm: rip부터 여러 디스어셈블된 결과를 보여준다.
+3. stack: rsp부터 스택의 값들을 보여준다.
+4. backtrace: 현재 rip에 도달할 때까지 어떤 함수들이 중첩되어 호출됐는지 보여준다.
+
+
+## 디버깅을 위해 자주 사용하는 명령어 - set
+
+set은 프로세스의 메모리 상태를 변경할 수 있는 명령어이다. 주로 레지스터 값을 변경하거나 특정 주소의 메모리 값을 변경하기 위해 사용한다. **set <주소/레지스터> = <변경할 값>** 와 같은 형식으로 사용할 수 있다.
+
+![image](https://github.com/user-attachments/assets/7534f55a-8407-48c4-86ad-eb4458e04ac1)
+
+레지스터 값 변경 예시
+
+![image](https://github.com/user-attachments/assets/0ee879b8-26b0-44d4-a83b-ca460e96af6a)
+
+특정 주소의 값을 바꾸기 위해서는 자료형이 필요하다. gdb는 자료형을 통해 해당 주소의 메모리 값을 어떻게 바꿀지 결정하고, c 언어의 자료형을 지원한다.
+
+첫 번째 set 명령어 사용에서는 **메모리 주소 0x400000을 unsigned int*형으로 역참조한 후 정수 10을 저장** 한다. 따라서 0x400000부터 시작하는 4바이트 메모리 공간에 10을 기록하게 된다.
+
+두 번째 set 명령어 사용에서는 **메모리 주소 0x400010을 float*형으로 역참조 한 후 부동소수점 값 3.14를 저장** 한다. 따라서 0x400010부터 시작하는 4바이트 메모리 공간에 3.14가 부동소수점 표현으로 저장된다.
+
+이후 x(examine)으로 바뀐 메모리 값을 확인할 수 있다.
+
+
+
+
+
+
+
+
+
+
 
 
 
