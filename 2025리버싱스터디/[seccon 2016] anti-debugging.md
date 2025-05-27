@@ -14,4 +14,5 @@ ida를 켜서 main 함수를 살펴본다. 비밀번호가 맞더라도 IsDebugg
 
 ![image](https://github.com/user-attachments/assets/bee3f0e2-44b6-4270-8a33-5791d8291a31)
 
-일단 쭉쭉 내려가보면 암호화된 플래그로 추정되는 문자열이 보인다. 
+일단 아래로 내려가보면 암호화된 플래그로 추정되는 문자열이 보인다. 
+
