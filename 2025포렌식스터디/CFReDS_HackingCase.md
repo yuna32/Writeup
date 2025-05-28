@@ -37,6 +37,8 @@ SCHARDT.008 : 8194A79A5356DF79883AE2DC7415929F
 
 
 What operating system was used on the computer?
+
+
 ![image](https://github.com/user-attachments/assets/cec4ae17-c0cd-43a2-98ab-2a67a22aa276)
 
 RegistryExplorer에서 제대로 열리지가 않아서 진행할수가 없었다
