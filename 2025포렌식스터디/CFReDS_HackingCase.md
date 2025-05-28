@@ -22,7 +22,7 @@
 
 What is the image hash? Does the acquisition and verification hash match?
 
-첨부 파일에 같이있는 hash 값을 보
+첨부 파일에 같이있는 hash 값을 보면  
 
 ![image](https://github.com/user-attachments/assets/4d304fbe-bbb4-4fe4-b035-d3c3b209d707)
 
