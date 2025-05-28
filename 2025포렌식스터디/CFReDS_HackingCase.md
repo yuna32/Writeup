@@ -1,7 +1,6 @@
 [CFReDS] Hacking Case
 ========================
 
-**재제출기간내에 작성하겠습니다!!**
 
 
 시나리오
@@ -23,7 +22,24 @@
 
 What is the image hash? Does the acquisition and verification hash match?
 
+첨부 파일에 같이있는 hash 값을 보
+
+![image](https://github.com/user-attachments/assets/4d304fbe-bbb4-4fe4-b035-d3c3b209d707)
+
+SCHARDT.001 : 28A9B613D6EEFE8A0515EF0A675BDEBD
+SCHARDT.002 : C7227E7EEA82D218663257397679A7C4
+SCHARDT.003 : EBBA35ACD7B8AA85A5A7C13F3DD733D2
+SCHARDT.004 : 669B6636DCB4783FD5509C4710856C59
+SCHARDT.005 : C46E5760E3821522EE81E675422025BB
+SCHARDT.006 : 99511901DA2DEA772005B5D0D764E750
+SCHARDT.007 : 99511901DA2DEA772005B5D0D764E750
+SCHARDT.008 : 8194A79A5356DF79883AE2DC7415929F
+
+
 What operating system was used on the computer?
+![image](https://github.com/user-attachments/assets/cec4ae17-c0cd-43a2-98ab-2a67a22aa276)
+
+RegistryExplorer에서 제대로 열리지가 않아서 진행할수가 없었다
 
 When was the install date?
 
