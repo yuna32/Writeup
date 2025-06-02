@@ -162,7 +162,7 @@ users에서 각 유저들의 파워쉘 히스토리를 볼 수 있다.
 
 ![image](https://github.com/user-attachments/assets/9cccb8cc-8308-45e8-af84-84c1437bed40)
 
-구글링해보니 역시 해킹툴의 이름임을 알 수 있었다.
+구글링해보니 역시 문제에서 언급한 패스워드 관련 툴의 이름임을 알 수 있었다.
 
 **정답: lazagne,mimikatz**
 
