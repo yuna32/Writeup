@@ -46,7 +46,9 @@ ni 하다보면 password 입력할 수 있고
 ![image](https://github.com/user-attachments/assets/5fa6cb58-0231-47b4-b809-fba70d9ccb8b)
 
 
-그러면 al에 들어있던 값들이 결국 password라 볼 수 있겠다.
+이렇게 하면 good password가 정상적으로 출력되는데 그러면 al에 들어있던 값들이 결국 password라 볼 수 있겠다.
+
+
 0x65, 0x61, 0x73, 0x79 이므로 아스키 문자로 변환하면
 * 0x65 (101 십진수) = e
 * 0x61 (97 십진수) = a
