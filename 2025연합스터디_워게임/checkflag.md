@@ -6,8 +6,12 @@ dreamhack checkflag
 <img width="527" height="388" alt="image" src="https://github.com/user-attachments/assets/fb310698-74e8-465b-98f2-44b8969a5cda" />
 
 "flag" 파일에 저장된 문자열과 사용자가 입력한 문자열이 정확히 일치하는지 확인한다. 
+
 만약 사용자 입력의 길이가 파일의 플래그 길이보다 짧거나 내용이 일치하지 않으면 "Failed!"를 출력하고 종료된다. 
+
 올바른 플래그를 입력하면 "Correct!"를 출력한다.
+
+
 
 프로그램 입력에서 발생할 수 있는 **버퍼 오버플로우** 를 이용하는 문제이다.
 
