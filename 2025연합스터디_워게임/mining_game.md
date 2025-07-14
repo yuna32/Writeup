@@ -32,7 +32,7 @@ Dreamhack mining game
 * **메뉴 및 출력**
     * `print_banner()`, `print_menu()` 함수를 통해 사용자에게 시작 메시지와 메뉴를 보여준다.
     * 다양한 `print_xxx_description()` 함수들은 광물들의 정보를 출력한다.
-      이 함수들은 `rare_earth_description_funcs` 벡터에 저장되어 있습니다.
+      이 함수들은 `rare_earth_description_funcs` 벡터에 저장되어 있다.
 
 * **유틸리티 함수**
     * `get_int()`: 사용자로부터 정수 입력을 받는다.
