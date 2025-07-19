@@ -93,7 +93,7 @@ p.interactive()
 
 <img width="677" height="182" alt="image" src="https://github.com/user-attachments/assets/4b218fdc-b210-4f4f-a17c-d06b96145417" />
 
-공격에 성공해서 쉘이 떳고 여기서 플래그 출력이 가능하다.
+공격에 성공해서 떴고 여기서 플래그 출력이 가능하다.
 
 
 
