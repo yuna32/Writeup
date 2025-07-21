@@ -137,7 +137,7 @@ int main(void) {
 
 3.  **게임 성공**:
     * `jump_cnt`가 `CAT_JUMP_GOAL` (37)에 도달하면 `do-while` 루프를 벗어난다.
-    * 고양이 이름을 입력받습니다 (`scanf("%31s", cat_name)`). 이때 최대 31바이트까지 입력받을 수 있다.
+    * 고양이 이름을 입력받는다. (`scanf("%31s", cat_name)`). 이때 최대 31바이트까지 입력받을 수 있다.
     * `snprintf(cmd, sizeof(cmd), cmd_fmt, cat_name);`를 통해 `cmd` 버퍼에 명령어를 생성한다. 
     * `system(cmd);`를 실행하여 이 명령어를 시스템에서 수행한다. 
     * 마지막으로 `/tmp/cat_db` 파일의 내용을 출력한다.
