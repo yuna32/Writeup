@@ -36,7 +36,6 @@ void Sandbox() {
 
 
 ```python
-// Create a space for shellcode and initialize it.
 sh = mmap((void *)0xbeefdead000, 0x1000, 7, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
 if (sh == MAP_FAILED)
 	HandleError("mmap error");
@@ -44,19 +43,15 @@ if (sh == MAP_FAILED)
 memset(sh, 0x90, 0x1000);
 memcpy(sh, stub, sizeof(stub) - 1);
 
-// Create a stack space for rsp.
 stack_mem = mmap((void *)0xdeadbeef000, 0x1000, PROT_WRITE | PROT_READ, MAP_ANONYMOUS | MAP_PRIVATE, 0, 0);
 if (stack_mem == MAP_FAILED)
 	HandleError("mmap error");
 
-// Get and execute shellcode.
 puts("find me :) ");
 sleep(1);
 printf("shellcode: ");
 read(0, sh + sizeof(stub) - 1, 1000);
 
-// sys_write and sys_arch_prctl are allowed.
-// sys_arch_prctl is used to initialize fs and gs.
 Sandbox();
 asm("mov %0, %%rsp" :: "r"(stack_mem));
 asm("add $0x800, %rsp");
