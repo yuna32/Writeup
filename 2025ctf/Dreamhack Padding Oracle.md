@@ -74,9 +74,142 @@ if __name__ == "__main__":
 
 
 4. 비밀번호 획득: 복호화된 결과에서 `admin_password`를 알아낸다.
-5. 최종 단계: 알아낸 패스워드로 `/secure/secret?password=...`를 호출하여 `flag.txt`의 내용을 획득한다. 
+5. 최종 단계: 알아낸 패스워드로 `/secure/secret?password=...`를 호출, `flag.txt`의 내용을 획득한다. 
 
 
-* **HMAC (Encrypt-then-MAC)**: 암호화된 데이터 뒤에 메시지 인증 코드(MAC)를 붙여, 복호화 전에 데이터가 변조되었는지 먼저 확인하면 조작된 패딩을 통한 공격 시도를 원천 차단할 수 있습니다.
 
-이제 이 분석을 바탕으로 파이썬의 `requests` 모듈을 이용해 **패딩 오라클 자동화 공격 스크립트**를 작성해 보고 싶으신가요? 원하신다면 기초적인 페이로드 구성법을 안내해 드릴 수 있습니다.
+## 3. 익스플로잇 코드
+
+```python
+import base64
+import requests
+from urllib import parse
+
+# 1. 설정
+API_URL = "http://host3.dreamhack.games:8843/"
+BLOCK_SIZE = 16
+
+def is_padding_ok(enc_data_b64):
+    # 서버에 조작된 암호문을 보내 패딩이 올바른지 확인하는 오라클 함수
+    # token과 sig는 형식을 맞추기 위한 임의의 값
+    # e_data가 먼저 복호화되므로 e_data의 패딩 오류 여부를 먼저 알 수 있다.
+    dummy_token = base64.b64encode(b'{"user_id":"guest","group":"user"}').decode()
+    
+    params = {
+        'e_data': enc_data_b64,
+        'token': dummy_token,
+        'sig': 'abc'
+    }
+    
+    try:
+        response = requests.get(f"{API_URL}secure/decrypt", params=params).json()
+        # 결과 메시지가 'ValueError'가 아니면(JSONDecodeError 등) 패딩은 일단 맞았다는 뜻
+        return response.get('result', {}).get('message') != 'ValueError'
+    except:
+        return False
+
+def decrypt_block(target_block, prev_block):
+    # CBC 모드의 특성을 이용해 한 블록(16바이트)을 복호화
+    intermediate = bytearray(BLOCK_SIZE)
+    plain_text = bytearray(BLOCK_SIZE)
+    
+    # 뒤에서부터 한 바이트씩 공격 (16번째 바이트 -> 1번째 바이트)
+    for i in range(1, BLOCK_SIZE + 1):
+        padding_val = i
+        modified_prev = bytearray(prev_block)
+        
+        # 이미 찾아낸 뒷부분 중간값들을 현재 패딩 값(i)에 맞춰 조작
+        for j in range(1, i):
+            modified_prev[BLOCK_SIZE - j] = intermediate[BLOCK_SIZE - j] ^ padding_val
+            
+        found = False
+        # 0부터 255까지 대입하여 패딩이 맞는지 확인
+        for val in range(256):
+            modified_prev[BLOCK_SIZE - i] = val
+            test_enc = base64.b64encode(bytes(modified_prev) + target_block).decode()
+            
+            if is_padding_ok(test_enc):
+                intermediate[BLOCK_SIZE - i] = val ^ padding_val
+                plain_text[BLOCK_SIZE - i] = intermediate[BLOCK_SIZE - i] ^ prev_block[BLOCK_SIZE - i]
+                current_char = chr(plain_text[BLOCK_SIZE - i]) if 32 <= plain_text[BLOCK_SIZE - i] <= 126 else '?'
+                print(f"[+] Found Byte {BLOCK_SIZE-i:02d}: {hex(plain_text[BLOCK_SIZE-i])} ('{current_char}')")
+                found = True
+                break
+        
+        if not found:
+            print(f"[-] Failed to find byte at index {BLOCK_SIZE - i}")
+            
+    return plain_text
+
+def main():
+    # 2. 게시물 목록에서 Admin 게시물 찾기 (Unpacking 에러 해결)
+    print(f"[*] Connecting to {API_URL}...")
+    try:
+        list_res = requests.get(f"{API_URL}gb/").json()
+    except Exception as e:
+        print(f"[-] Connection Error: {e}")
+        return
+
+    articles = list_res.get('result', {}).get('articles', [])
+    target_idx = None
+    
+    for article in articles:
+        if isinstance(article, dict):
+            idx = article.get('idx')
+            title = article.get('title', '')
+        else:
+            idx, title = article[0], article[1]
+            
+        if "Admin" in str(title):
+            target_idx = idx
+            print(f"[+] Found Admin article at index: {target_idx}")
+            break
+            
+    if target_idx is None:
+        print("[-] Could not find Admin article.")
+        return
+
+    # 3. 암호화된 데이터 획득
+    article_res = requests.get(f"{API_URL}gb/{target_idx}").json()
+    enc_data_b64 = article_res['result']['article']['enc_data']
+    enc_data = base64.b64decode(enc_data_b64)
+    
+    # 4. 블록 단위 복호화
+    blocks = [enc_data[i:i+BLOCK_SIZE] for i in range(0, len(enc_data), BLOCK_SIZE)]
+    full_plain_text = b""
+    
+    # CBC이므로 (이전블록, 현재블록) 쌍으로 복호화 진행
+    for i in range(1, len(blocks)):
+        print(f"[*] Decrypting Block {i}...")
+        full_plain_text += decrypt_block(blocks[i], blocks[i-1])
+        
+    print(f"\n[!] Final Decrypted Text: {full_plain_text}")
+
+    # 5. 패스워드 추출 및 플래그 획득
+    try:
+        decoded_text = full_plain_text.decode('latin-1', errors='ignore')
+        if "password is: " in decoded_text:
+            admin_pw = decoded_text.split("password is: ")[1].split('"')[0].strip()
+            admin_pw = admin_pw.replace('}', '').replace(' ', '')
+            print(f"[*] Extracted Password: {admin_pw}")
+            
+            final_res = requests.get(f"{API_URL}secure/secret", params={'password': admin_pw}).json()
+            print("-" * 40)
+            print(f"FLAG: {final_res.get('result', {}).get('secret')}")
+            print("-" * 40)
+    except Exception as e:
+        print(f"[-] Parsing failed: {e}")
+
+if __name__ == "__main__":
+    main()
+```
+
+
+
+## 4. 실행 결과
+
+
+
+<img width="1147" height="126" alt="image" src="https://github.com/user-attachments/assets/98b1659f-8969-4fa7-be5f-a9c80578f848" />
+
+이렇게 플래그를 얻어낼 수 있다.
